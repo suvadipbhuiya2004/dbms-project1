@@ -58,7 +58,7 @@ export async function getServerUser() {
       case 'INSTRUCTOR': {
         const { rows } = await query(
           `
-          SELECT experience, rating
+          SELECT experience
           FROM instructors
           WHERE user_id = $1
           `,

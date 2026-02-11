@@ -121,10 +121,10 @@ export async function POST(request) {
 
           await client.query(
             `
-            INSERT INTO instructors (user_id, experience, rating)
-            VALUES ($1, $2, $3)
+            INSERT INTO instructors (user_id, experience)
+            VALUES ($1, $2)
             `,
-            [createdUser.id, experience ? Number(experience) : 0, 0]
+            [createdUser.id, experience ? Number(experience) : 0]
           );
           break;
         }

@@ -9,7 +9,6 @@ export default function InstructorDashboard({ stats }) {
       <div className="grid md:grid-cols-3 gap-6">
         <Card title="Your Courses" value={stats.courses.length} icon={<BookOpen className="text-indigo-600" />} />
         <Card title="Active Students" value={stats.totalStudents} icon={<Users className="text-purple-600" />} />
-        <Card title="Average Rating" value={`${stats.rating} ★`} icon={<Star className="text-amber-500" />} />
       </div>
 
       <h3 className="text-xl font-black text-slate-900">Active Curriculum</h3>
