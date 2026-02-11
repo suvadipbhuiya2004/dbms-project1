@@ -13,11 +13,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock fetch
-global.fetch = vi.fn(() => 
+global.fetch = vi.fn(() =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ user: null }),
-  })
+  }),
 );
 
 describe("useAuth Hook", () => {
@@ -31,7 +31,7 @@ describe("useAuth Hook", () => {
 
     // Wait for the initial effect to settle
     await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.user).toBe(null);
@@ -46,7 +46,7 @@ describe("useAuth Hook", () => {
 
     // Wait for the initial effect to settle
     await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(typeof result.current.login).toBe("function");
