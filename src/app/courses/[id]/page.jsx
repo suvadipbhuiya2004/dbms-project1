@@ -2,10 +2,20 @@ import { getServerUser } from "@/lib/serverAuth";
 import { query } from "@/lib/db/pool";
 import EnrollButton from "@/ui/EnrollButton";
 import Link from "next/link";
-import { GraduationCap, ArrowLeft, Settings, Clock, BookOpen, Tag, Book, Users, UserCircle } from "lucide-react";
+import {
+  GraduationCap,
+  ArrowLeft,
+  Settings,
+  Clock,
+  BookOpen,
+  Tag,
+  Book,
+  Users,
+  UserCircle,
+} from "lucide-react";
 import CourseContent from "../../../components/CourseContent";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function CourseDetail({ params }) {
   const { id } = await params;
@@ -17,7 +27,7 @@ export default async function CourseDetail({ params }) {
      JOIN partner_university u ON u.id = c.university_id
      LEFT JOIN textbooks tb ON tb.id = c.book_id
      WHERE c.id = $1`,
-    [id]
+    [id],
   );
 
   const course = rows[0];
@@ -27,7 +37,7 @@ export default async function CourseDetail({ params }) {
     `SELECT t.name FROM topics t
      JOIN course_topics ct ON ct.topic_id = t.id
      WHERE ct.course_id = $1`,
-    [id]
+    [id],
   );
   const topics = topicRows.map((row) => row.name);
 
@@ -37,7 +47,7 @@ export default async function CourseDetail({ params }) {
      JOIN instructors i ON i.user_id = t.instructor_id
      JOIN users u ON u.id = i.user_id
      WHERE t.course_id = $1`,
-    [id]
+    [id],
   );
   const instructors = instructorRows.map((row) => row.name);
 
@@ -45,8 +55,13 @@ export default async function CourseDetail({ params }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900">Course not found</h1>
-          <Link href="/courses" className="mt-4 inline-block text-indigo-600 font-bold">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Course not found
+          </h1>
+          <Link
+            href="/courses"
+            className="mt-4 inline-block text-indigo-600 font-bold"
+          >
             Return to browse
           </Link>
         </div>
@@ -58,14 +73,14 @@ export default async function CourseDetail({ params }) {
 
   const { rows: enrollment } = await query(
     `SELECT marks FROM enrollments WHERE course_id = $1 AND student_id = $2`,
-    [id, user?.id]
+    [id, user?.id],
   );
   const isEnrolled = enrollment.length > 0;
   const studentMarks = enrollment.length > 0 ? enrollment[0].marks : null;
 
   const { rows: teaching } = await query(
     `SELECT 1 FROM teaches WHERE course_id = $1 AND instructor_id = $2`,
-    [id, user?.id]
+    [id, user?.id],
   );
   const isInstructor = teaching.length > 0;
 
@@ -75,7 +90,7 @@ export default async function CourseDetail({ params }) {
     const { rows: contentRows } = await query(
       `SELECT id, type, body, created_at FROM contents 
        WHERE course_id = $1 ORDER BY created_at DESC`,
-      [id]
+      [id],
     );
     contents = contentRows;
   }
@@ -83,8 +98,8 @@ export default async function CourseDetail({ params }) {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <div className="mx-auto max-w-7xl px-6 pt-12">
-        <Link 
-          href="/courses" 
+        <Link
+          href="/courses"
           className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors mb-8"
         >
           <ArrowLeft size={16} /> Back to Courses
@@ -110,7 +125,7 @@ export default async function CourseDetail({ params }) {
               {user?.role === "STUDENT" && !isEnrolled && (
                 <EnrollButton courseId={course.id} />
               )}
-              
+
               {isEnrolled && (
                 <div className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-emerald-50 text-emerald-700 font-bold border border-emerald-100">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -139,34 +154,31 @@ export default async function CourseDetail({ params }) {
               )}
 
               {isAdmin && (
-                <>
-                  <Link
-                    href={`/courses/${course.id}/manage`}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-slate-800"
-                  >
-                    <Settings size={18} />
-                    Manage Course
-                  </Link>
-                  <Link
-                    href={`/courses/${course.id}/analysis`}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-purple-600 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-purple-700"
-                  >
-                    <GraduationCap size={18} />
-                    View Analytics
-                  </Link>
-                </>
+                <Link
+                  href={`/courses/${course.id}/manage`}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-slate-800"
+                >
+                  <Settings size={18} />
+                  Manage Course
+                </Link>
               )}
             </div>
           </div>
 
-          <div className={`mt-10 grid ${isEnrolled && studentMarks !== null ? 'grid-cols-3' : 'grid-cols-2'} gap-4 border-y border-slate-100 py-8`}>
+          <div
+            className={`mt-10 grid ${isEnrolled && studentMarks !== null ? "grid-cols-3" : "grid-cols-2"} gap-4 border-y border-slate-100 py-8`}
+          >
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-slate-50 p-3 text-slate-600">
                 <Clock size={24} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duration</p>
-                <p className="font-bold text-slate-900">{course.duration} Months</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Duration
+                </p>
+                <p className="font-bold text-slate-900">
+                  {course.duration} Months
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -174,8 +186,12 @@ export default async function CourseDetail({ params }) {
                 <BookOpen size={24} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</p>
-                <p className="font-bold text-slate-900">{course.program_type}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Type
+                </p>
+                <p className="font-bold text-slate-900">
+                  {course.program_type}
+                </p>
               </div>
             </div>
             {isEnrolled && studentMarks !== null && (
@@ -184,20 +200,24 @@ export default async function CourseDetail({ params }) {
                   <GraduationCap size={24} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Marks</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Your Marks
+                  </p>
                   <p className="font-bold text-slate-900">{studentMarks}/100</p>
                 </div>
               </div>
             )}
           </div>
 
-          {(topics.length > 0 || course.textbook_title || instructors.length > 0) && (
+          {(topics.length > 0 ||
+            course.textbook_title ||
+            instructors.length > 0) && (
             <div className="mt-8 space-y-6">
               {instructors.length > 0 && (
                 <div>
                   <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
                     <UserCircle size={16} className="text-indigo-500" />
-                    {instructors.length === 1 ? 'Instructor' : 'Instructors'}
+                    {instructors.length === 1 ? "Instructor" : "Instructors"}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {instructors.map((instructor, idx) => (
@@ -238,8 +258,12 @@ export default async function CourseDetail({ params }) {
                     Required Textbook
                   </h3>
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
-                    <p className="text-base font-bold text-slate-900">{course.textbook_title}</p>
-                    <p className="text-sm text-slate-600 mt-1">by {course.textbook_author}</p>
+                    <p className="text-base font-bold text-slate-900">
+                      {course.textbook_title}
+                    </p>
+                    <p className="text-sm text-slate-600 mt-1">
+                      by {course.textbook_author}
+                    </p>
                   </div>
                 </div>
               )}
@@ -247,9 +271,12 @@ export default async function CourseDetail({ params }) {
           )}
 
           <div className="mt-10">
-            <h3 className="text-xl font-bold text-slate-900 mb-4">Course Overview</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-4">
+              Course Overview
+            </h3>
             <p className="text-lg leading-relaxed text-slate-600 whitespace-pre-wrap">
-              {course.description || "Detailed curriculum information coming soon."}
+              {course.description ||
+                "Detailed curriculum information coming soon."}
             </p>
           </div>
 
@@ -264,8 +291,13 @@ export default async function CourseDetail({ params }) {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-500">
                 <Settings size={24} />
               </div>
-              <h4 className="text-lg font-bold text-slate-900">Content Locked</h4>
-              <p className="mt-1 text-slate-500">Access of lectures, notes, and readings is limited to enrolled students and instructors.</p>
+              <h4 className="text-lg font-bold text-slate-900">
+                Content Locked
+              </h4>
+              <p className="mt-1 text-slate-500">
+                Access of lectures, notes, and readings is limited to enrolled
+                students and instructors.
+              </p>
             </div>
           )}
         </div>
