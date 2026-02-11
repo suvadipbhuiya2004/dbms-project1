@@ -11,7 +11,7 @@ describe('Footer Component', () => {
   it('renders platform links', () => {
     render(<Footer />);
     
-    expect(screen.getByText('EduPlatform')).toBeDefined();
+    expect(screen.getByText('BongoDB')).toBeDefined();
     expect(screen.getByText('All Courses')).toBeDefined();
     expect(screen.getByText('Privacy Policy')).toBeDefined();
   });
