@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useAuth } from "./useAuth";
 import { useAuthStore } from "@/store/authStore";
 
@@ -26,8 +26,13 @@ describe("useAuth Hook", () => {
     useAuthStore.getState().resetAuth();
   });
 
-  it("should return initial state", () => {
+  it("should return initial state", async () => {
     const { result } = renderHook(() => useAuth());
+
+    // Wait for the initial effect to settle
+    await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.user).toBe(null);
     expect(result.current.isAuthenticated).toBe(false);
@@ -36,8 +41,13 @@ describe("useAuth Hook", () => {
   // Note: Testing useEffect and async fetch in hooks requires more setup
   // and waiting for updates. Keeping this simple for now.
 
-  it("should expose auth methods", () => {
+  it("should expose auth methods", async () => {
     const { result } = renderHook(() => useAuth());
+
+    // Wait for the initial effect to settle
+    await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+    });
 
     expect(typeof result.current.login).toBe("function");
     expect(typeof result.current.register).toBe("function");
