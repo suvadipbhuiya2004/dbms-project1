@@ -2,7 +2,7 @@ import { getServerUser } from "@/lib/serverAuth";
 import { query } from "@/lib/db/pool";
 import EnrollButton from "@/ui/EnrollButton";
 import Link from "next/link";
-import { GraduationCap, ArrowLeft, Settings, Clock, BookOpen } from "lucide-react";
+import { GraduationCap, ArrowLeft, Settings, Clock, BookOpen, Tag, Book, Users, UserCircle } from "lucide-react";
 import CourseContent from "../../../components/CourseContent";
 
 export const dynamic = 'force-dynamic';
@@ -12,13 +12,35 @@ export default async function CourseDetail({ params }) {
   const user = await getServerUser();
 
   const { rows } = await query(
-    `SELECT c.*, u.name AS university FROM courses c
+    `SELECT c.*, u.name AS university, tb.title AS textbook_title, tb.author AS textbook_author
+     FROM courses c
      JOIN partner_university u ON u.id = c.university_id
+     LEFT JOIN textbooks tb ON tb.id = c.book_id
      WHERE c.id = $1`,
     [id]
   );
 
   const course = rows[0];
+
+  // Fetch topics for this course
+  const { rows: topicRows } = await query(
+    `SELECT t.name FROM topics t
+     JOIN course_topics ct ON ct.topic_id = t.id
+     WHERE ct.course_id = $1`,
+    [id]
+  );
+  const topics = topicRows.map((row) => row.name);
+
+  // Fetch instructors for this course
+  const { rows: instructorRows } = await query(
+    `SELECT u.name FROM teaches t
+     JOIN instructors i ON i.user_id = t.instructor_id
+     JOIN users u ON u.id = i.user_id
+     WHERE t.course_id = $1`,
+    [id]
+  );
+  const instructors = instructorRows.map((row) => row.name);
+
   if (!course) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
@@ -35,10 +57,11 @@ export default async function CourseDetail({ params }) {
   const isAdmin = user?.role === "ADMIN";
 
   const { rows: enrollment } = await query(
-    `SELECT 1 FROM enrollments WHERE course_id = $1 AND student_id = $2`,
+    `SELECT marks FROM enrollments WHERE course_id = $1 AND student_id = $2`,
     [id, user?.id]
   );
   const isEnrolled = enrollment.length > 0;
+  const studentMarks = enrollment.length > 0 ? enrollment[0].marks : null;
 
   const { rows: teaching } = await query(
     `SELECT 1 FROM teaches WHERE course_id = $1 AND instructor_id = $2`,
@@ -95,6 +118,16 @@ export default async function CourseDetail({ params }) {
                 </div>
               )}
 
+              {isInstructor && (
+                <Link
+                  href={`/courses/${course.id}/students`}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-indigo-700"
+                >
+                  <Users size={18} />
+                  View Students
+                </Link>
+              )}
+
               {isAdmin && (
                 <Link
                   href={`/courses/${course.id}/manage`}
@@ -107,7 +140,7 @@ export default async function CourseDetail({ params }) {
             </div>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-4 border-y border-slate-100 py-8">
+          <div className={`mt-10 grid ${isEnrolled && studentMarks !== null ? 'grid-cols-3' : 'grid-cols-2'} gap-4 border-y border-slate-100 py-8`}>
             <div className="flex items-center gap-4">
               <div className="rounded-2xl bg-slate-50 p-3 text-slate-600">
                 <Clock size={24} />
@@ -126,7 +159,73 @@ export default async function CourseDetail({ params }) {
                 <p className="font-bold text-slate-900">{course.program_type}</p>
               </div>
             </div>
+            {isEnrolled && studentMarks !== null && (
+              <div className="flex items-center gap-4">
+                <div className="rounded-2xl bg-slate-50 p-3 text-slate-600">
+                  <GraduationCap size={24} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Marks</p>
+                  <p className="font-bold text-slate-900">{studentMarks}/100</p>
+                </div>
+              </div>
+            )}
           </div>
+
+          {(topics.length > 0 || course.textbook_title || instructors.length > 0) && (
+            <div className="mt-8 space-y-6">
+              {instructors.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <UserCircle size={16} className="text-indigo-500" />
+                    {instructors.length === 1 ? 'Instructor' : 'Instructors'}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {instructors.map((instructor, idx) => (
+                      <span
+                        key={idx}
+                        className="rounded-xl bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700"
+                      >
+                        {instructor}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {topics.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <Tag size={16} className="text-indigo-500" />
+                    Topics Covered
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {topics.map((topic, idx) => (
+                      <span
+                        key={idx}
+                        className="rounded-xl bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700"
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {course.textbook_title && (
+                <div>
+                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <Book size={16} className="text-indigo-500" />
+                    Required Textbook
+                  </h3>
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                    <p className="text-base font-bold text-slate-900">{course.textbook_title}</p>
+                    <p className="text-sm text-slate-600 mt-1">by {course.textbook_author}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-10">
             <h3 className="text-xl font-bold text-slate-900 mb-4">Course Overview</h3>

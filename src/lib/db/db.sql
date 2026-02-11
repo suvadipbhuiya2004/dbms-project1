@@ -41,8 +41,7 @@ CREATE TABLE students (
 
 CREATE TABLE instructors (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    experience INT CHECK (experience >= 0),
-    rating NUMERIC(3,2) CHECK (rating BETWEEN 0 AND 5)
+    experience INT CHECK (experience >= 0)
 );
 
 CREATE TABLE partner_university (

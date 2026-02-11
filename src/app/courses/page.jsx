@@ -16,16 +16,46 @@ export default async function CoursesPage() {
       c.program_type,
       c.duration,
       c.university_id,
-      u.name AS university
+      c.book_id,
+      u.name AS university,
+      tb.title AS textbook_title,
+      tb.author AS textbook_author
     FROM courses c
     JOIN partner_university u ON u.id = c.university_id
+    LEFT JOIN textbooks tb ON tb.id = c.book_id
     ORDER BY c.created_at DESC
   `);
+
+  // Fetch topics for each course
+  const { rows: courseTopics } = await query(`
+    SELECT ct.course_id, t.name AS topic_name
+    FROM course_topics ct
+    JOIN topics t ON t.id = ct.topic_id
+  `);
+
+  // Organize topics by course
+  const topicsByCourse = {};
+  courseTopics.forEach((ct) => {
+    if (!topicsByCourse[ct.course_id]) {
+      topicsByCourse[ct.course_id] = [];
+    }
+    topicsByCourse[ct.course_id].push(ct.topic_name);
+  });
+
+  // Attach topics and textbook to each course
+  const enrichedCourses = courses.map((course) => ({
+    ...course,
+    topics: topicsByCourse[course.id] || [],
+    textbook:
+      course.textbook_title && course.textbook_author
+        ? { title: course.textbook_title, author: course.textbook_author }
+        : null,
+  }));
 
   const { rows: universities } = await query(`
     SELECT id, name FROM partner_university ORDER BY name
   `);
 
-  return <CourseList courses={courses} universities={universities} userRole={user?.role} />;
+  return <CourseList courses={enrichedCourses} universities={universities} userRole={user?.role} />;
 }
 

@@ -52,7 +52,7 @@ export async function GET(request) {
       case "INSTRUCTOR": {
         const { rows } = await query(
           `
-          SELECT experience, rating
+          SELECT experience
           FROM instructors
           WHERE user_id = $1
           `,

@@ -1,6 +1,7 @@
+// components/CourseList.jsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,6 +15,7 @@ import {
   Layers,
   ChevronRight,
   Search,
+  Tag,
 } from "lucide-react";
 
 export default function CourseList({ courses, universities, userRole }) {
@@ -29,7 +31,12 @@ export default function CourseList({ courses, universities, userRole }) {
     program_type: "",
     duration: "",
     university_id: "",
+    textbook: { title: "", author: "" },
+    topics: [],
   });
+
+  const [availableTopics, setAvailableTopics] = useState([]);
+  const [topicInput, setTopicInput] = useState("");
 
   const resetForm = () => {
     setForm({
@@ -38,8 +45,37 @@ export default function CourseList({ courses, universities, userRole }) {
       program_type: "",
       duration: "",
       university_id: "",
+      textbook: { title: "", author: "" },
+      topics: [],
     });
+    setTopicInput("");
     setEditingCourse(null);
+  };
+
+  useEffect(() => {
+    fetch("/api/topics")
+      .then((res) => res.json())
+      .then((data) => setAvailableTopics(data.topics || []))
+      .catch(console.error);
+  }, []);
+
+  const addTopic = () => {
+    const topic = topicInput.trim();
+    if (topic && !form.topics.includes(topic)) {
+      setForm({ ...form, topics: [...form.topics, topic] });
+      setTopicInput("");
+    }
+  };
+
+  const removeTopic = (topic) => {
+    setForm({ ...form, topics: form.topics.filter((t) => t !== topic) });
+  };
+
+  const handleTopicKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTopic();
+    }
   };
 
   const openCreateModal = () => {
@@ -57,6 +93,8 @@ export default function CourseList({ courses, universities, userRole }) {
       program_type: course.program_type,
       duration: String(course.duration),
       university_id: course.university_id,
+      textbook: course.textbook || { title: "", author: "" },
+      topics: course.topics || [],
     });
     setShowModal(true);
   };
@@ -77,10 +115,17 @@ export default function CourseList({ courses, universities, userRole }) {
       : "/api/courses";
     const method = editingCourse ? "PATCH" : "POST";
 
+    const payload = {
+      ...form,
+      duration: Number(form.duration),
+      textbook:
+        form.textbook.title && form.textbook.author ? form.textbook : undefined,
+    };
+
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, duration: Number(form.duration) }),
+      body: JSON.stringify(payload),
     });
 
     setSubmitting(false);
@@ -91,7 +136,6 @@ export default function CourseList({ courses, universities, userRole }) {
 
   const filteredCourses = useMemo(() => {
     if (!search.trim()) return courses;
-
     const q = search.toLowerCase();
     return courses.filter((c) => c.name.toLowerCase().includes(q));
   }, [courses, search]);
@@ -211,8 +255,8 @@ export default function CourseList({ courses, universities, userRole }) {
             onClick={() => setShowModal(false)}
           />
 
-          <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white shadow-2xl transition-all">
-            <div className="flex items-center justify-between border-b border-slate-100 px-8 py-6">
+          <div className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl transition-all">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-8 py-6">
               <h2 className="text-xl font-extrabold text-slate-900">
                 {editingCourse ? "Edit Course Details" : "Create New Course"}
               </h2>
@@ -224,7 +268,10 @@ export default function CourseList({ courses, universities, userRole }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
+            <form
+              onSubmit={handleSubmit}
+              className="flex-1 overflow-y-auto px-8 py-8 space-y-6"
+            >
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-slate-700">
                   Course Name
@@ -310,16 +357,89 @@ export default function CourseList({ courses, universities, userRole }) {
                 </select>
               </div>
 
-              <button
-                disabled={submitting}
-                className="cursor-pointer w-full rounded-2xl bg-indigo-600 py-4 font-bold text-white shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-700 hover:shadow-indigo-200 disabled:opacity-50"
-              >
-                {submitting
-                  ? "Processing..."
-                  : editingCourse
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">
+                  Textbook (Optional)
+                </label>
+                <div className="space-y-3">
+                  <input
+                    placeholder="Book Title"
+                    value={form.textbook.title}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        textbook: { ...form.textbook, title: e.target.value },
+                      })
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  />
+                  <input
+                    placeholder="Author Name"
+                    value={form.textbook.author}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        textbook: { ...form.textbook, author: e.target.value },
+                      })
+                    }
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">
+                  Topics
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Enter topic name"
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    onKeyDown={handleTopicKeyDown}
+                    className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={addTopic}
+                    className="cursor-pointer flex items-center gap-2 rounded-2xl bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-200"
+                  >
+                    <Plus size={16} />
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {form.topics.map((topic, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700"
+                    >
+                      <Tag size={14} />
+                      {topic}
+                      <button
+                        type="button"
+                        onClick={() => removeTopic(topic)}
+                        className="cursor-pointer ml-1 text-indigo-400 hover:text-indigo-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="sticky bottom-0 bg-white pb-2 pt-4">
+                <button
+                  disabled={submitting}
+                  className="cursor-pointer w-full rounded-2xl bg-indigo-600 py-4 font-bold text-white shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-700 hover:shadow-indigo-200 disabled:opacity-50"
+                >
+                  {submitting
+                    ? "Processing..."
+                    : editingCourse
                     ? "Save Changes"
                     : "Create Course"}
-              </button>
+                </button>
+              </div>
             </form>
           </div>
         </div>

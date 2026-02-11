@@ -3,41 +3,13 @@ import path from "path";
 import { withTransaction } from "./pool.js";
 import { hashPassword } from "@/lib/crypto.js";
 
-const ADMIN_NAME = process.env.ADMIN_NAME || "Admin User";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@gmail.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
-
-const seedAdmin = async () => {
-  return withTransaction(async (client) => {
-    const { rows } = await client.query(
-      `SELECT id FROM users WHERE email = $1 LIMIT 1`,
-      [ADMIN_EMAIL],
-    );
-
-    if (rows.length > 0) {
-      console.log("Admin already exists, skipping seeding.");
-      return;
-    }
-
-    const passwordHash = await hashPassword(ADMIN_PASSWORD);
-    await client.query(
-      `INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, 'ADMIN')`,
-      [ADMIN_NAME, ADMIN_EMAIL, passwordHash]
-    );
-
-    console.log("Admin user seeded successfully");
-  });
-};
-
 const seedJsonData = async () => {
   const filePath = path.resolve(process.cwd(), "insert.json");
   const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
   return withTransaction(async (client) => {
-    // 1. Seed Users with Hashing
     if (data.users) {
       for (const user of data.users) {
-        // Hash the raw password from JSON before saving to DB
         const secureHash = await hashPassword(user.password_hash);
         
         await client.query(
@@ -48,7 +20,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 2. Seed Students
     if (data.students) {
       for (const s of data.students) {
         await client.query(
@@ -59,18 +30,16 @@ const seedJsonData = async () => {
       }
     }
 
-    // 3. Seed Instructors
     if (data.instructors) {
       for (const i of data.instructors) {
         await client.query(
-          `INSERT INTO instructors (user_id, experience, rating) 
-           VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-          [i.user_id, i.experience, i.rating]
+          `INSERT INTO instructors (user_id, experience) 
+           VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [i.user_id, i.experience]
         );
       }
     }
 
-    // 4. Seed Universities
     if (data.partner_university) {
       for (const u of data.partner_university) {
         await client.query(
@@ -81,7 +50,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 5. Seed Textbooks
     if (data.textbooks) {
       for (const b of data.textbooks) {
         await client.query(
@@ -92,7 +60,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 6. Seed Topics
     if (data.topics) {
       for (const t of data.topics) {
         await client.query(
@@ -103,7 +70,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 7. Seed Courses
     if (data.courses) {
       for (const c of data.courses) {
         await client.query(
@@ -114,7 +80,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 8. Seed Contents
     if (data.contents) {
       for (const ct of data.contents) {
         await client.query(
@@ -125,7 +90,6 @@ const seedJsonData = async () => {
       }
     }
 
-    // 9. Seed Relations
     if (data.course_topics) {
       for (const ct of data.course_topics) {
         await client.query(
@@ -159,7 +123,6 @@ const seedJsonData = async () => {
 
 const runSeeds = async () => {
   try {
-    await seedAdmin();
     await seedJsonData();
   } catch (err) {
     console.error("Seeding failed", {

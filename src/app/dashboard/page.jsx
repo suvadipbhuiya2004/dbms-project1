@@ -48,17 +48,12 @@ export default async function DashboardPage() {
        FROM courses c JOIN teaches t ON t.course_id = c.id WHERE t.instructor_id = $1`,
       [user.id],
     );
-    const { rows: instrInfo } = await query(
-      `SELECT rating FROM instructors WHERE user_id = $1`,
-      [user.id],
-    );
     stats = {
       courses: myCourses,
       totalStudents: myCourses.reduce(
         (acc, curr) => acc + parseInt(curr.students),
         0,
       ),
-      rating: instrInfo[0]?.rating ?? null,
     };
   } else if (role === "STUDENT") {
     const { rows: myEnrolls } = await query(
