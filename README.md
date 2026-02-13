@@ -28,7 +28,7 @@ Clone the repository in your local machine using `git clone` and then navigate t
 ```bash
 $ git clone https://github.com/your-username/your-repository-name.git
 
-$ cd your-repository-name 
+$ cd dbms-project1 
 ```
 
 ### Install Dependencies
@@ -50,10 +50,10 @@ If not configured properly, the application will fail to start.
 
 #### 1. Create the .env File
 
-Create a `.env` file in the root directory:
+Create a `.env.local` file in the root directory:
 
 ```
-$ touch .env
+$ touch .env.local
 ```
 
 #### 2. Required Environment Variables
@@ -76,7 +76,7 @@ $ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 This command will output a random 64-character hexadecimal string.
 
-Copy the generated value and add it inside your .env file in the following format:
+Copy the generated value and add it to your .env file in the following format:
 ```
 JWT_SECRET=your_generated_secret_here
 ```
@@ -111,18 +111,18 @@ The application should now be running on:
 ```
 
 ## Database Design
-The complete database design artifacts are available below:
+The complete database design artefacts are available below:
 
 - <a href="https://github.com/suvadipbhuiya2004/dbms-project1/blob/main/docs/ER_diagram.pdf" target="_blank">ER Diagram</a>  
 -  <a href="https://github.com/suvadipbhuiya2004/dbms-project1/blob/main/docs/create_tables.sql" target="_blank">Database Schema (SQL Code)</a>
 
-The BongoDB platform is built on a structured and normalized PostgreSQL relational database designed to ensure data integrity, scalability, and efficient querying. The schema follows strong normalization principles, enforces referential integrity through foreign key constraints, and models real-world academic relationships using well-defined entity and relationship tables.
+The BongoDB platform is built on a structured and normalised PostgreSQL relational database designed to ensure data integrity, scalability, and efficient querying. The schema follows strong normalisation principles, enforces referential integrity through foreign key constraints, and models real-world academic relationships using well-defined entity and relationship tables.
 
 The database supports role-based system architecture and academic workflow management through the following core components:
 
 ### 1. User and Role Management
 
-At the core of the system is a centralized Users entity that manages authentication and identity information for all platform participants.
+At the core of the system is a centralised Users entity that manages authentication and identity information for all platform participants.
 
 Each user record stores:
 
@@ -161,7 +161,7 @@ This design ensures:
 
 ### 2. Academic Structure
 
-The academic framework of BongoDB models universities, courses, subjects, and reference materials in a structured relational design. This layer defines how educational programs are organized and associated within the platform.
+The academic framework of BongoDB models universities, courses, subjects, and reference materials in a structured relational design. This layer defines how educational programs are organised and associated within the platform.
 
  - **Partner Universities**
 
@@ -223,7 +223,7 @@ This academic structure ensures:
 
 ### 3. Course Content Management
 
-The course content layer manages all learning materials associated with individual courses. It ensures that academic resources are structured, categorized, and accessible only to authorized users.
+The course content layer manages all learning materials associated with individual courses. It ensures that academic resources are structured, categorised, and accessible only to authorised users.
 
  - **Course Content**
 
@@ -243,7 +243,7 @@ The course content layer manages all learning materials associated with individu
 
 This structure ensures:
 
-   - Organized delivery of course materials
+   - Organised delivery of course materials
 
    - Clear separation of content by course
 
@@ -252,7 +252,7 @@ This structure ensures:
    - Extensibility for additional content types
 
 
-### 4. Relationship Modeling (Many-to-Many Associations)
+### 4. Relationship Modelling (Many-to-Many Associations)
 
 The database models real-world academic relationships using dedicated mapping structures to handle many-to-many associations between core entities.
 
@@ -262,7 +262,7 @@ The database models real-world academic relationships using dedicated mapping st
 
    - A topic can belong to multiple courses
 
-   - Enables flexible subject categorization
+   - Enables flexible subject categorisation
 
  - **Instructor–Course Assignment**
 
@@ -274,13 +274,13 @@ The database models real-world academic relationships using dedicated mapping st
 
  - **Student Enrollment**
 
-   - A student can enroll in multiple courses
+   - A student can enrol in multiple courses
 
    - A course can have multiple students
 
-   - Enrollment records store marks and enrollment timestamp
+   - Enrollment records store marks and enrollment timestamps
 
-This relationship modeling ensures:
+This relationship modelling ensures:
 
    - Accurate representation of academic workflows
 
@@ -291,13 +291,13 @@ This relationship modeling ensures:
    - Strong referential integrity across entities
 
 
-### 5. Data Integrity and Optimization
+### 5. Data Integrity and Optimisation
 
 The database design incorporates multiple mechanisms to maintain data correctness, security, and performance efficiency.
 
  - Use of UUIDs for globally unique primary keys
 
- - Foreign key constraints with cascading behavior where appropriate
+ - Foreign key constraints with cascading behaviour where appropriate
 
  - Enumerated types for controlled values (roles, program types, content types)
 
@@ -332,4 +332,4 @@ The application is deployed on **Vercel**, enabling seamless integration with Gi
 
 A **Continuous Integration (CI) pipeline** has been implemented to ensure code quality and reliability. Every push or pull request triggers automated checks and build validation, helping maintain a stable and production-ready main branch.
 
-This structured stack and deployment workflow ensures that BongoDB is not only functionally robust but also engineered following modern development and DevOps best practices.
+This structured stack and deployment workflow ensures that BongoDB is not only functionally robust but also engineered in accordance with modern development and DevOps best practices.
